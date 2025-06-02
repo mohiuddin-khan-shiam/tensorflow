@@ -24,6 +24,7 @@ namespace tensorflow {
 namespace {
 const char kDeviceSuffixReplicatedCore[] = "REPLICATED_CORE";
 const char kShardingAttribute[] = "_XlaSharding";
+const char kShardingAttributeV2[] = "_XlaShardingV2";
 const char kShardingOpAttribute[] = "sharding";
 }  // namespace
 
@@ -180,6 +181,20 @@ absl::StatusOr<std::optional<xla::OpSharding>> GetShardingFromNodeDef(
                         GetShardingFromNodeDefInternal(node_def, add_metadata,
                                                        kShardingOpAttribute));
     if (sharding.has_value()) {
+      TF_ASSIGN_OR_RETURN(auto shardingv2,
+                          GetShardingFromNodeDefInternal(node_def, add_metadata,
+                                                         kShardingAttributeV2));
+      if (shardingv2.has_value()) {
+        if (tensorflow::VerifyShardingEquivalent(sharding.value(),
+                                                 shardingv2.value())
+                .failed()) {
+          return xla::InvalidArgument(
+              "XlaSharding attribute was not equivalent to XlaShardingV2 "
+              "attribute.");
+        }
+        return shardingv2;
+      }
+
       return sharding;
     }
   }
