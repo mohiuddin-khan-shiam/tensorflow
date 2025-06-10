@@ -52,3 +52,14 @@ cc_library(
     hdrs = ["static_registration.h"],
     deps = ["//xla/pjrt:pjrt_api"],
 )
+
+cc_library(
+    name = "dynamic_registration",
+    srcs = ["dynamic_registration.cc"],
+    hdrs = ["dynamic_registration.h"],
+    deps = [
+        "//xla/pjrt:pjrt_api",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/strings:string_view",
+    ],
+)
