@@ -33,6 +33,7 @@
 #include "xla/python/ifrt/dtype.h"
 #include "xla/python/ifrt/future.h"
 #include "xla/python/ifrt/memory.h"
+#include "xla/python/ifrt/serdes_version.h"
 #include "xla/python/ifrt/shape.h"
 #include "xla/python/ifrt/sharding.h"
 #include "xla/python/ifrt_proxy/client/array.h"
@@ -84,6 +85,10 @@ class ClientTest : public ::testing::TestWithParam</*protocol_version=*/int> {
   IfrtProxyVersion Version() {
     IfrtProxyVersion version;
     version.set_protocol_version(GetParam());
+    // TODO(hyeontaek): For a more realistic setup, the IFRT SerDes version
+    // should vary by the protocol version.
+    version.set_ifrt_serdes_version_number(
+        SerDesVersion::current().version_number().value());
     return version;
   }
 
@@ -95,7 +100,7 @@ class ClientTest : public ::testing::TestWithParam</*protocol_version=*/int> {
     rpc_helper_->set_host_buffer_store(host_buffer_store_);
 
     InitResponse response;
-    if (Version().protocol_version() <= 3) {
+    if (rpc_helper_->protocol_version() <= 3) {
       ASSERT_TRUE(tsl::protobuf::TextFormat::ParseFromString(
           R"pb(
             platform_name: "ifrt-service"
@@ -140,7 +145,7 @@ class ClientTest : public ::testing::TestWithParam</*protocol_version=*/int> {
             }
           )pb",
           &response));
-    } else if (Version().protocol_version() < 7) {
+    } else if (rpc_helper_->protocol_version() < 7) {
       ASSERT_TRUE(tsl::protobuf::TextFormat::ParseFromString(
           R"pb(
             platform_name: "ifrt-service"

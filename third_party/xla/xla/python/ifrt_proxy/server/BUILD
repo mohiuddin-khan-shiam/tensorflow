@@ -70,6 +70,7 @@ cc_library(
         ":version",
         "//xla/pjrt/distributed:util",
         "//xla/python/ifrt:attribute_map",
+        "//xla/python/ifrt:serdes_version",
         "//xla/python/ifrt_proxy/common:grpc_ifrt_service_cc_grpc_proto",
         "//xla/python/ifrt_proxy/common:grpc_ifrt_service_proto_cc",
         "//xla/python/ifrt_proxy/common:ifrt_service_proto_cc",
@@ -133,6 +134,8 @@ cc_library(
         "//xla/python/ifrt:basic_device_list",
         "//xla/python/ifrt:program_serdes",
         "//xla/python/ifrt:serdes",
+        "//xla/python/ifrt:serdes_any_version_accessor",
+        "//xla/python/ifrt:serdes_version",
         "//xla/python/ifrt:sharding_serdes",
         "//xla/python/ifrt_proxy/common:array_util",
         "//xla/python/ifrt_proxy/common:common_serdes",
@@ -285,6 +288,8 @@ cc_library(
     srcs = ["version.cc"],
     hdrs = ["version.h"],
     deps = [
+        "//xla/python/ifrt:serdes_any_version_accessor",
+        "//xla/python/ifrt:serdes_version",
         "//xla/python/ifrt_proxy/common:versions",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
@@ -298,6 +303,7 @@ ifrt_proxy_cc_test(
     srcs = ["version_test.cc"],
     deps = [
         ":version",
+        "//xla/python/ifrt:serdes_version",
         "//xla/tsl/platform:status_matchers",
         "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
