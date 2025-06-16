@@ -61,6 +61,7 @@ dispatch support using the `add_dispatch_support` decorator.
 
 import collections
 import itertools
+import sys
 import typing  # pylint: disable=unused-import (used in doctests)
 
 from tensorflow.python.framework import _pywrap_python_api_dispatcher as _api_dispatcher
@@ -1155,27 +1156,53 @@ def update_docstrings_with_api_lists():
   `dispatch_for_binary_elementwise_apis`, by replacing the string '<<API_LIST>>'
   with a list of APIs that have been registered for that decorator.
   """
-  _update_docstring_with_api_list(dispatch_for_unary_elementwise_apis,
-                                  _UNARY_ELEMENTWISE_APIS)
-  _update_docstring_with_api_list(dispatch_for_binary_elementwise_apis,
-                                  _BINARY_ELEMENTWISE_APIS)
-  _update_docstring_with_api_list(dispatch_for_binary_elementwise_assert_apis,
-                                  _BINARY_ELEMENTWISE_ASSERT_APIS)
-  _update_docstring_with_api_list(dispatch_for_api,
-                                  _TYPE_BASED_DISPATCH_SIGNATURES)
+  _update_docstring_with_api_list(
+      dispatch_for_unary_elementwise_apis,
+      _UNARY_ELEMENTWISE_APIS,
+      "  The unary elementwise APIs are:\n\n",
+  )
+  _update_docstring_with_api_list(
+      dispatch_for_binary_elementwise_apis,
+      _BINARY_ELEMENTWISE_APIS,
+      "  The binary elementwise APIs are:\n\n",
+  )
+  _update_docstring_with_api_list(
+      dispatch_for_binary_elementwise_assert_apis,
+      _BINARY_ELEMENTWISE_ASSERT_APIS,
+      "  The binary elementwise assert APIs are:\n\n",
+  )
+  if sys.version_info >= (3, 13):
+    _update_docstring_with_api_list(
+        dispatch_for_api,
+        _TYPE_BASED_DISPATCH_SIGNATURES,
+        "The TensorFlow APIs that may be overridden by `@dispatch_for_api`"
+        " are:\n\n",
+    )
+  else:
+    _update_docstring_with_api_list(
+        dispatch_for_api, _TYPE_BASED_DISPATCH_SIGNATURES
+    )
 
 
-def _update_docstring_with_api_list(target, api_list):
+def _update_docstring_with_api_list(target, api_list, prefix=None):
   """Replaces `<<API_LIST>>` in target.__doc__ with the given list of APIs."""
   lines = []
   for func in api_list:
+    if isinstance(func, dict):
+      func = list(func.keys())[0]
     name = tf_export_lib.get_canonical_name_for_symbol(
-        func, add_prefix_to_v1_names=True)
+        func, add_prefix_to_v1_names=True
+    )
     if name is not None:
       params = tf_inspect.signature(func).parameters.keys()
       lines.append(f"  * `tf.{name}({', '.join(params)})`")
   lines.sort()
-  target.__doc__ = target.__doc__.replace("  <<API_LIST>>", "\n".join(lines))
+  if prefix:
+    target.__doc__ = target.__doc__.replace(
+        "<<API_LIST>>", prefix + "\n".join(lines)
+    )
+  elif "<<API_LIST>>" in target.__doc__:
+    target.__doc__ = target.__doc__.replace("<<API_LIST>>", "\n".join(lines))
 
 
 ################################################################################
